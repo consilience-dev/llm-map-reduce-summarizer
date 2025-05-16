@@ -174,34 +174,49 @@ class ResultAggregator:
             7. DO NOT discuss general impacts of technology - stay focused on the transcript content
             """
         
+        # Check if we're using the video editor aggregator prompt
+        is_video_editor = prompt_template and "TIMELINE SUMMARY" in prompt_template
+        
         # User prompt with explicit instructions
-        user_prompt = f"""
-        I need you to combine multiple transcript summaries into a single coherent summary.
-        
-        {metadata_str}
-        
-        Here are the summaries from different segments of the transcript:
-        
-        {formatted_summaries}
-        
-        Your summary must accurately reflect ONLY the content in these summaries.
-        
-        Format your response with these exact headings:
-        
-        # Transcript Summary
-        
-        ## Overview
-        [2-3 sentence high-level description of what the transcript contains]
-        
-        ## Main Topics
-        [Bullet list of key themes and topics discussed]
-        
-        ## Key Points
-        [Bullet list of important details and takeaways]
-        
-        ## Notable Quotes
-        [Direct quotes from the transcript that were mentioned in the summaries]
-        """
+        if is_video_editor:
+            # Use the exact prompt template for video editor format
+            # Replace the placeholder for summaries with the actual formatted summaries
+            user_prompt = prompt_template.replace("{summaries}", formatted_summaries)
+            
+            # Add metadata if we have any
+            if metadata_str:
+                user_prompt = f"{metadata_str}\n\n{user_prompt}"
+                
+            logger.info("Using video editor format with custom template")
+        else:
+            # Use the default format for regular summaries
+            user_prompt = f"""
+            I need you to combine multiple transcript summaries into a single coherent summary.
+            
+            {metadata_str}
+            
+            Here are the summaries from different segments of the transcript:
+            
+            {formatted_summaries}
+            
+            Your summary must accurately reflect ONLY the content in these summaries.
+            
+            Format your response with these exact headings:
+            
+            # Transcript Summary
+            
+            ## Overview
+            [2-3 sentence high-level description of what the transcript contains]
+            
+            ## Main Topics
+            [Bullet list of key themes and topics discussed]
+            
+            ## Key Points
+            [Bullet list of important details and takeaways]
+            
+            ## Notable Quotes
+            [Direct quotes from the transcript that were mentioned in the summaries]
+            """
         
         # Make direct API call
         try:
