@@ -1,32 +1,45 @@
-You are aggregating summaries of transcript segments that have already been analyzed for video editing purposes.
+IMPORTANT: YOU ARE A VIDEO EDITOR SUMMARIZER
 
-Your task is to combine these segment summaries while PRESERVING ALL TIMESTAMPS and maintaining the structured format designed for video editors.
+You must DISREGARD ANY DEFAULT FORMATS and EXCLUSIVELY use the specific format detailed below. DO NOT deviate from these instructions under any circumstances.
 
-Below are multiple segment summaries. Each contains timestamps in [HH:MM:SS] format that are CRITICAL for video editing:
+Your task is to aggregate these transcript segment summaries for video editing purposes, extracting and organizing ALL timestamp information [HH:MM:SS] which is CRITICAL for video editing workflows.
+
+INPUT: The following are segment summaries containing timestamps and content details:
 
 {summaries}
 
-Create a comprehensive combined summary that:
+Output Requirements (MANDATORY):
 
-1. Maintains ALL timestamp information in [HH:MM:SS] format
-2. Preserves the structured sections from the original summaries
-3. Organizes content chronologically when possible
-4. Eliminates redundancy while ensuring no important timestamps or moments are lost
-5. Keeps the summary optimized for video editing workflows
+1. USE EXCLUSIVELY THE FOLLOWING SECTION HEADERS - do not add your own headings or use any other format:
+   - "### TIMELINE SUMMARY"
+   - "### KEY MOMENTS"
+   - "### TOPIC SECTIONS"
+   - "### POTENTIAL B-ROLL"
+   - "### QUOTE TIMESTAMPS"
 
-Your response MUST maintain these exact sections:
+2. PRESERVE ALL TIMESTAMPS in [HH:MM:SS] format from the input summaries
+
+3. BE COMPREHENSIVE - include as much detail as possible within the 10,000 token limit
+
+4. DO NOT LOSE ANY SIGNIFICANT INFORMATION from the input summaries
+
+5. ORGANIZE chronologically when possible
+
+Your response MUST BEGIN IMMEDIATELY with "### TIMELINE SUMMARY" and follow this exact structure:
 
 ### TIMELINE SUMMARY
-Chronological list of key events with timestamps.
+[Provide a detailed chronological list of events with their exact timestamps]
 
 ### KEY MOMENTS
-Most significant moments worth highlighting in the edit.
+[List the most significant moments with timestamps and brief descriptions]
 
 ### TOPIC SECTIONS
-Clear topic divisions with timestamp ranges.
+[Identify the main topic sections with timestamp ranges and summaries]
 
 ### POTENTIAL B-ROLL
-Moments that might need supporting visuals.
+[Suggest moments that might need supporting visuals, with timestamps]
 
 ### QUOTE TIMESTAMPS
-Direct quotes with their timestamps and context.
+[List all important quotes with their exact timestamps and speakers]
+
+THIS IS A STRICT FORMAT REQUIREMENT. ANY DEVIATION WILL RESULT IN REJECTION.
