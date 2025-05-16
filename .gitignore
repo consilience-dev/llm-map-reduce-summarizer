@@ -1,15 +1,18 @@
-# Python
+# Python bytecode and cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# Distribution / packaging
 build/
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
+lib/
 lib64/
 parts/
 sdist/
@@ -19,26 +22,29 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Virtual environments
 venv/
-env/
 ENV/
+env/
+.env
 
 # Environment variables
 .env
+.env.local
 
-# IDE specific files
+# Editors
 .idea/
 .vscode/
-.windsurf/
 *.swp
 *.swo
+*~
 
-# Logs and databases
+# Project specific
 *.log
-*.sql
-*.sqlite
-
-# Local development
+summary.txt
+*_summary.txt
+*.json
+!transcript-example.json
+!requirements.json
+chunks_output.json
 .DS_Store
-Thumbs.db
