@@ -143,19 +143,36 @@ class ResultAggregator:
             formatted_summaries += "=" * 40 + "\n\n"
         
         # System message to control model behavior
-        system_message = """
-        You are a professional transcript summarizer. Your ONLY job is to create a structured summary that 
-        combines information from multiple transcript segment summaries.
-        
-        IMPORTANT RULES:
-        1. DO NOT include any greeting or introduction
-        2. DO NOT ask how you can help
-        3. ONLY produce the summary in the requested format
-        4. START your response with "# Transcript Summary"
-        5. The summary MUST ONLY contain information from the provided summaries
-        6. DO NOT make up information not contained in the summaries
-        7. DO NOT discuss general impacts of technology - stay focused on the transcript content
-        """
+        if prompt_template and "TIMELINE SUMMARY" in prompt_template:
+            # Use a more flexible system message for custom format prompts like video editor
+            system_message = """
+            You are a professional transcript summarizer specializing in video editing formats. Your job is to create a 
+            structured summary that combines information from multiple transcript segment summaries.
+            
+            IMPORTANT RULES:
+            1. DO NOT include any greeting or introduction
+            2. DO NOT ask how you can help
+            3. Follow EXACTLY the format specified in the user prompt
+            4. Preserve ALL timestamps in [HH:MM:SS] format
+            5. The summary MUST ONLY contain information from the provided summaries
+            6. DO NOT make up information not contained in the summaries
+            7. DO NOT discuss general impacts of technology - stay focused on the transcript content
+            """
+        else:
+            # Use the standard system message for default format
+            system_message = """
+            You are a professional transcript summarizer. Your ONLY job is to create a structured summary that 
+            combines information from multiple transcript segment summaries.
+            
+            IMPORTANT RULES:
+            1. DO NOT include any greeting or introduction
+            2. DO NOT ask how you can help
+            3. ONLY produce the summary in the requested format
+            4. START your response with "# Transcript Summary"
+            5. The summary MUST ONLY contain information from the provided summaries
+            6. DO NOT make up information not contained in the summaries
+            7. DO NOT discuss general impacts of technology - stay focused on the transcript content
+            """
         
         # User prompt with explicit instructions
         user_prompt = f"""
