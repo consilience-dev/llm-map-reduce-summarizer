@@ -111,7 +111,8 @@ class LLMExecutor:
         self,
         chunks: List[Dict[Any, Any]],
         prompt_template: str,
-        summary_type: str = "summary"
+        summary_type: str = "summary",
+        system_prompt: Optional[str] = None
     ) -> List[Dict[Any, Any]]:
         """
         Process multiple chunks in parallel with rate limiting.
@@ -132,10 +133,15 @@ class LLMExecutor:
         semaphore = asyncio.Semaphore(self.max_concurrent_requests)
         
         # Process each chunk concurrently
-        tasks = [
-            self.process_chunk(chunk, prompt_template, summary_type, semaphore, index)
-            for index, chunk in enumerate(chunks)
-        ]
+        tasks = []
+        for index, chunk in enumerate(chunks):
+            # Add system prompt to each chunk if provided
+            if system_prompt:
+                chunk_copy = chunk.copy()
+                chunk_copy['system_prompt'] = system_prompt
+                tasks.append(self.process_chunk(chunk_copy, prompt_template, summary_type, semaphore, index))
+            else:
+                tasks.append(self.process_chunk(chunk, prompt_template, summary_type, semaphore, index))
         
         # Wait for all tasks to complete
         processed_chunks = await asyncio.gather(*tasks)
