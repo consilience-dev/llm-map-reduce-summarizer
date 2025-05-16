@@ -41,7 +41,7 @@ Input Transcript → Preprocessor → Chunker → LLM Executor (parallel) → Re
 1. ✅ **Preprocessor**: Cleans and prepares transcript data, combines segments, handles timestamps
 2. ✅ **Big Chunkeroosky**: Splits preprocessed transcript into chunks respecting sentence boundaries and token limits
 3. ✅ **LLM Executor**: Distributes chunks to multiple LLMs in parallel with support for OpenAI and Anthropic
-4. 🚧 **Result Aggregator**: Combines individual chunk summaries into a coherent whole
+4. ✅ **Result Aggregator**: Combines individual chunk summaries into a coherent whole
 5. 🚧 **Prompt Manager**: Provides customizable prompts for different summarization tasks
 
 **Legend:** ✅ Implemented | 🚧 Coming Soon
@@ -94,23 +94,68 @@ Handles parallel processing of chunks:
 - Token usage statistics
 - Processing metadata (model used, cost, etc.)
 
-### Result Aggregator (in development)
+### Result Aggregator (`result_aggregator.py`)
 
-Will combine individual chunk summaries:
+Combines individual chunk summaries into a coherent final summary:
 
-- Merges summaries using additional LLM passes
-- Eliminates redundancy
-- Ensures coherent narrative flow
-- Preserves key insights from all chunks
+- Makes direct API calls to LLMs for reliable summaries
+- Supports both single-pass and hierarchical aggregation for large documents
+- Eliminates redundancy and ensures coherent narrative flow
+- Preserves key insights, quotes, and themes from all chunks
+- Structures output with consistent sections (Overview, Main Topics, Key Points, Notable Quotes)
 
-### Prompt Manager (planned)
+### Prompt Management
 
-Will manage prompts for different summarization tasks:
+Manages prompts for different summarization tasks:
 
-- Provides default prompt templates
-- Allows customization of prompts
-- Supports loading prompts from files
-- Enables prompt switching for different use cases
+- ✅ Provides default prompt templates
+- ✅ Allows loading custom prompts from files
+- ✅ Supports dedicated system prompts for controlling AI behavior
+- ✅ Includes sample prompts for different use cases (analytical, video editing, etc.)
+- ✅ Enables command-line selection of prompt files
+- ✅ Supports custom aggregator prompts for tailored final summaries
+- ✅ Preserves intermediate chunk summaries for detailed analysis
+
+The `/prompts` directory contains sample prompt templates for different use cases:
+
+- `analytical_prompt.txt`: Focuses on critical analysis of arguments and evidence
+- `video_editor_prompt.txt`: Specialized for video editing with detailed timestamps
+- `video_editor_system.txt`: System prompt that sets the AI's persona as a video editor
+- `video_editor_aggregator.txt`: Aggregator prompt that preserves timestamps in the final summary
+- `academic_system.txt`: System prompt for scholarly, academic-style analysis
+- `accessibility_system.txt`: System prompt for clear, accessible summaries
+
+#### Prompt Types and Hierarchy
+
+| Prompt Type | Purpose | When Applied | CLI Argument |
+|-------------|---------|--------------|----------------|
+| Regular Prompt | Main instructions for processing each chunk | Individual chunks | `--prompt-file` |
+| System Prompt | Sets the tone, personality and style | Individual chunks | `--system-prompt-file` |
+| Aggregator Prompt | Controls how chunks are combined | Final aggregation | `--aggregator-prompt-file` |
+
+#### Prompt Placeholder Variables
+
+- Regular prompts: Use `{transcript}` as a placeholder for the transcript content
+- Aggregator prompts: Use `{summaries}` as a placeholder for the list of summaries to combine
+
+#### Intermediate Chunk Summaries
+
+Saving intermediate chunks provides detailed summaries with timestamps before they're aggregated into the final summary. This is especially useful for video editing workflows where detailed timestamp information is critical.
+
+```json
+{
+  "timestamp": "2025-05-15 20:25:25",
+  "chunks": [
+    {
+      "chunk_index": 0,
+      "start_time": 0.0,
+      "end_time": 992.4,
+      "summary": "### TIMELINE SUMMARY\n[00:00] - Speaker introduces...",
+      "tokens_used": 4947
+    }
+  ]
+}
+```
 
 ## Data Flow
 
@@ -139,108 +184,176 @@ Will manage prompts for different summarization tasks:
 
 ## Usage
 
-### Basic Usage
+### Command-Line Usage
+
+The simplest way to use the transcript summarizer is through the `main.py` script, which provides a command-line interface to the entire pipeline:
+
+```bash
+# Basic usage
+python main.py --input transcript.json --output summary.txt
+
+# Limit segments (for testing or cost control)
+python main.py --input transcript.json --output summary.txt --limit-segments 100
+
+# Use a different model or provider
+python main.py --input transcript.json --output summary.txt --provider anthropic --model claude-3-sonnet-20240229
+
+# Generate detailed report with processing stats
+python main.py --input transcript.json --output summary.txt --report
+
+# Customize chunking parameters
+python main.py --input transcript.json --output summary.txt --max-tokens-per-chunk 3000 --max-segment-duration 90
+
+# Use custom prompt templates
+python main.py --input transcript.json --output summary.txt --prompt-file prompts/analytical_prompt.txt
+
+# Use both custom prompt and system prompt
+python main.py --input transcript.json --output summary.txt --prompt-file prompts/video_editor_prompt.txt --system-prompt-file prompts/video_editor_system.txt
+
+# Use custom aggregator prompt
+python main.py --input transcript.json --output summary.txt --prompt-file prompts/video_editor_prompt.txt --aggregator-prompt-file prompts/video_editor_aggregator.txt
+
+# Save intermediate chunk summaries (before aggregation)
+python main.py --input transcript.json --output summary.txt --save-chunks chunks_output.json
+
+# Full video editor workflow with all features
+python main.py --input transcript.json --output summary.txt --prompt-file prompts/video_editor_prompt.txt --system-prompt-file prompts/video_editor_system.txt --aggregator-prompt-file prompts/video_editor_aggregator.txt --save-chunks chunks_output.json
+```
+
+Run `python main.py --help` for a full list of options.
+
+### Python API Usage
+
+You can also use the transcript summarizer programmatically in your Python code:
 
 ```python
 import asyncio
 import json
-from preprocessor import preprocess_transcript
-from big_chunkeroosky import BigChunkeroosky
-from llm_executor import LLMExecutor
-from result_aggregator import aggregate_results  # Coming soon
+from main import TranscriptSummarizer
 
-async def summarize_transcript(transcript_path, output_path=None):
+async def summarize_my_transcript(transcript_path, output_path):
     # Load transcript
     with open(transcript_path, 'r', encoding='utf-8') as f:
         transcript_data = json.load(f)
     
-    # Preprocess transcript
-    processed_segments = preprocess_transcript(
-        transcript_data['segments'],
-        merge_same_speaker=True,
-        max_segment_duration=120,  # 2 minutes max per segment
-        preserve_timestamps=True
+    # Create summarizer with desired config
+    summarizer = TranscriptSummarizer(
+        provider="openai",
+        model="gpt-4o-mini",  # Specify model or leave as None to use default from .env
+        max_tokens_per_chunk=4000,
+        max_concurrent_requests=5,
+        hierarchical_aggregation=True
     )
     
-    # Split into chunks based on token limit
-    chunker = BigChunkeroosky(max_tokens_per_chunk=4000)
-    chunks = chunker.chunk_transcript(processed_segments)
-    chunks = chunker.postprocess_chunks(chunks)
+    # Process transcript
+    result = await summarizer.summarize(
+        transcript_data,
+        merge_same_speaker=True,
+        max_segment_duration=120,  # 2 minutes max per segment
+        # Custom prompt template (optional)
+        prompt_template="""Please summarize this transcript segment with attention to key points and important quotes:
+        
+        {transcript}
+        
+        Provide your summary in this format:
+        1. Main Points:
+        2. Key Details:
+        3. Notable Quotes:""",
+        # Additional metadata to include in summary
+        metadata={"title": "My Transcript", "speaker": "John Doe"}
+    )
     
-    # Process chunks in parallel with LLMs
-    prompt_template = """
-    Please summarize the following transcript segment:
+    # Extract summary and write to file
+    summary = result["summary"]
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(summary)
+    
+    return result
+
+# Run the summarizer
+# asyncio.run(summarize_my_transcript('transcript.json', 'summary.txt'))
+```
+
+### Working with Different Prompt Templates
+
+While a dedicated prompt manager is still in development, you can already customize the prompts used for summarization in several ways:
+
+#### 1. CLI with Custom Prompt File
+
+Create a prompt file:
+```bash
+# Create a prompt file
+echo '
+Please analyze the following transcript segment:
+
+{transcript}
+
+Analyze with these sections:
+1. Key Topics
+2. Main Arguments
+3. Evidence Presented
+4. Notable Quotes
+' > analytical_prompt.txt
+
+# Use the prompt with main script
+python main.py --input transcript.json --output summary.txt --prompt-file analytical_prompt.txt
+```
+
+#### 2. Programming with Custom Prompt
+
+With the TranscriptSummarizer class:
+```python
+summarizer = TranscriptSummarizer()
+result = await summarizer.summarize(
+    transcript_data,
+    prompt_template="""Summarize this transcript focusing on the emotional tone:
     
     {transcript}
     
-    Provide a concise summary that captures the main points, ideas, and flow of the conversation.
-    """
-    
-    executor = LLMExecutor()
-    processed_chunks = await executor.process_chunks(chunks, prompt_template)
-    
-    # Aggregate results into a final summary (coming soon)
-    # final_summary = aggregate_results(processed_chunks)
-    
-    # For now, just combine the summaries
-    summaries = [chunk.get('summary', '') for chunk in processed_chunks]
-    final_summary = '\n\n'.join(summaries)
-    
-    # Save summary if output path is provided
-    if output_path:
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(final_summary)
-    
-    return final_summary
-
-# Run the summarizer
-# asyncio.run(summarize_transcript('transcript.json', 'summary.txt'))
+    Include sections on:
+    1. Overall emotional themes
+    2. Key emotional moments
+    3. Relationship dynamics"""
+)
 ```
 
-### Preprocessing Only
+#### 3. Working Directly with Components
 
+For advanced customization:
 ```python
-from preprocessor import preprocess_transcript
-import json
-
-# Load transcript
-with open('transcript.json', 'r', encoding='utf-8') as f:
-    transcript_data = json.load(f)
-
-# Preprocess with different options
-processed_segments = preprocess_transcript(
-    transcript_data['segments'],
-    merge_same_speaker=True,
-    max_segment_duration=120  # 2 minutes max
-)
-
-# Time-interval aggregation (1-minute intervals)
-time_intervals = preprocess_transcript(
-    transcript_data['segments'],
-    time_interval_seconds=60
+# Process with custom prompt
+executor = LLMExecutor(provider="openai", model="gpt-4o-mini")
+processed_chunks = await executor.process_chunks(
+    chunks,
+    """Create a creative summary of this transcript segment as if it were a movie scene:
+    
+    {transcript}
+    
+    Include: setting, characters, dialogue highlights, and mood."""
 )
 ```
 
 ## Configuration
 
-### API Keys and Environment
+Environment variables can be configured in a `.env` file. See `.env.template` for an example with all available options.
 
-The system uses a `.env` file to manage API keys and configuration. A template is provided in `.env.template`:
+```dotenv
+# Provider Selection
+DEFAULT_PROVIDER=openai  # Options: openai, anthropic
 
-```
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_ORG_ID=your_openai_org_id_here_if_applicable
-OPENAI_MODEL=gpt-3.5-turbo  # Options: gpt-3.5-turbo, gpt-4, gpt-4o-mini, etc.
+OPENAI_ORG_ID=your_openai_org_id_here  # Optional
+OPENAI_MODEL=gpt-4o-mini  # Options: gpt-3.5-turbo, gpt-4, gpt-4o-mini, etc.
 
 # Anthropic Configuration
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ANTHROPIC_MODEL=claude-3-sonnet-20240229
 
 # Request Configuration
-MAX_CONCURRENT_REQUESTS=5  # Maximum parallel requests to LLM API
-TEMPERATURE=0.3  # Temperature parameter for LLM responses (0.0-1.0)
-MAX_TOKENS=1000  # Maximum tokens in LLM responses
+MAX_CONCURRENT_REQUESTS=10  # Maximum parallel requests to LLM API
+TEMPERATURE=1.0           # Controls creativity of outputs (0.0-2.0)
+MAX_TOKENS=4000           # Maximum tokens in LLM responses
 REQUEST_TIMEOUT=60  # Timeout for API requests in seconds
 
 # Default Provider Selection
