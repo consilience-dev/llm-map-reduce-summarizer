@@ -1,0 +1,29 @@
+Analyze this transcript segment to create a timestamp-based summary for video editing:
+
+{transcript}
+
+Structure your response with these sections:
+
+### TIMELINE SUMMARY
+Create a chronological summary with timestamps. Format as:
+[HH:MM:SS] - Brief description of what happens at this point (1-2 sentences)
+
+### KEY MOMENTS
+List 3-5 standout moments worth highlighting in the edit:
+[HH:MM:SS] - Description of the moment and why it's significant
+Visual/Audio notes: (describe any visual or audio characteristics that make this moment important)
+
+### TOPIC SECTIONS
+Identify distinct topic sections with timestamp ranges:
+[HH:MM:SS-HH:MM:SS] TOPIC NAME
+Brief summary of this topic section (2-3 sentences)
+
+### POTENTIAL B-ROLL
+List moments that might need supporting visuals:
+[HH:MM:SS] - Description of what's being discussed
+Suggested visuals: (brief ideas for complementary footage)
+
+### QUOTE TIMESTAMPS
+Most quotable moments that might need subtitles or emphasis:
+[HH:MM:SS] "Exact quote from the transcript"
+Context: Brief contextual note about why this quote matters

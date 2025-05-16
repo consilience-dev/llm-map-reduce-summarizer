@@ -1,0 +1,20 @@
+Please analyze the following transcript segment with a focus on critical analysis:
+
+{transcript}
+
+Provide your analysis with these sections:
+
+### 1. Main Arguments
+Identify and analyze the primary arguments, claims, or positions presented.
+
+### 2. Evidence and Support
+Examine the evidence, examples, or reasoning used to support the main arguments.
+
+### 3. Logical Structure
+Analyze the logical flow and structure of the discussion.
+
+### 4. Key Insights
+Highlight the most significant insights or takeaways.
+
+### 5. Notable Quotes
+Include direct quotes that best represent the core ideas.

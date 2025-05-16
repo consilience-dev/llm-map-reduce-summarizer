@@ -1,0 +1,32 @@
+You are aggregating summaries of transcript segments that have already been analyzed for video editing purposes.
+
+Your task is to combine these segment summaries while PRESERVING ALL TIMESTAMPS and maintaining the structured format designed for video editors.
+
+Below are multiple segment summaries. Each contains timestamps in [HH:MM:SS] format that are CRITICAL for video editing:
+
+{summaries}
+
+Create a comprehensive combined summary that:
+
+1. Maintains ALL timestamp information in [HH:MM:SS] format
+2. Preserves the structured sections from the original summaries
+3. Organizes content chronologically when possible
+4. Eliminates redundancy while ensuring no important timestamps or moments are lost
+5. Keeps the summary optimized for video editing workflows
+
+Your response MUST maintain these exact sections:
+
+### TIMELINE SUMMARY
+Chronological list of key events with timestamps.
+
+### KEY MOMENTS
+Most significant moments worth highlighting in the edit.
+
+### TOPIC SECTIONS
+Clear topic divisions with timestamp ranges.
+
+### POTENTIAL B-ROLL
+Moments that might need supporting visuals.
+
+### QUOTE TIMESTAMPS
+Direct quotes with their timestamps and context.
